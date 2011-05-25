@@ -1,0 +1,7 @@
+*.swp
+*.sh
+*.[oa]
+Makefile
+cscope*
+objs
+.hg*
