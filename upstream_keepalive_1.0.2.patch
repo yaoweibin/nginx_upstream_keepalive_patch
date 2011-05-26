@@ -1,5 +1,5 @@
 diff --git a/src/event/ngx_event_pipe.c b/src/event/ngx_event_pipe.c
-index d01b204..86736d1 100644
+index d01b204..02325b2 100644
 --- a/src/event/ngx_event_pipe.c
 +++ b/src/event/ngx_event_pipe.c
 @@ -10,7 +10,12 @@
@@ -8,7 +8,7 @@ index d01b204..86736d1 100644
  
 +#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
 +static ngx_int_t ngx_event_pipe_read_upstream(ngx_event_pipe_t *p, 
-+                                              ngx_int_t do_fulsh);
++                                              ngx_int_t do_flush);
 +#else
  static ngx_int_t ngx_event_pipe_read_upstream(ngx_event_pipe_t *p);
 +#endif
@@ -83,7 +83,7 @@ index d01b204..86736d1 100644
                  /* STUB */ cl->buf->num = p->num++;
  
                  if (p->input_filter(p, cl->buf) == NGX_ERROR) {
-@@ -323,13 +365,31 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p)
+@@ -323,11 +365,29 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p)
                  ln = cl;
                  cl = cl->next;
                  ngx_free_chain(p->pool, ln);
@@ -98,23 +98,21 @@ index d01b204..86736d1 100644
 +                }
 +#endif
              }
++
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++            /* STUB */ cl->buf->num = p->num++;
++
++            if (p->input_filter(p, cl->buf) == NGX_ERROR) {
++                return NGX_ABORT;
++            }
++
++            ln = cl;
++            cl = cl->next;
++            ngx_free_chain(p->pool, ln);
++#endif
          }
  
-+#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
-+        /* STUB */ cl->buf->num = p->num++;
-+
-+        if (p->input_filter(p, cl->buf) == NGX_ERROR) {
-+            return NGX_ABORT;
-+        }
-+
-+        ln = cl;
-+        cl = cl->next;
-+        ngx_free_chain(p->pool, ln);
-+#endif
-+
          if (cl) {
-             for (ln = cl; ln->next; ln = ln->next) { /* void */ }
- 
 @@ -337,6 +397,9 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p)
              p->free_raw_bufs = cl;
          }
