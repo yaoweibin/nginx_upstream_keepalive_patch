@@ -31,14 +31,74 @@ __DATA__
 
 === TEST 1: the GET of HTTP
 --- http_config
-    upstream thin{
-        server 127.0.0.1:3000;
+    upstream backend{
+        server blog.163.com;
         keepalive 64;
     }
 --- config
     location / {
-        proxy_pass http://thin;
+        proxy_set_header Host blog.163.com;
+        proxy_pass http://backend;
     }
 --- request
-    GET /index.html
+    GET /
+--- response_body_like: ^(.*)$
+
+=== TEST 2: the GET of HTTP again
+--- http_config
+    upstream backend{
+        server blog.163.com;
+        keepalive 64;
+    }
+--- config
+    location / {
+        proxy_set_header Host blog.163.com;
+        proxy_pass http://backend;
+    }
+--- request
+    GET /
+--- response_body_like: ^(.*)$
+
+=== TEST 3: the GET of HTTP with variable length response
+--- http_config
+    upstream backend{
+        server www.163.com;
+        keepalive 64;
+    }
+--- config
+    location / {
+        proxy_set_header Host www.163.com;
+        proxy_pass http://backend;
+    }
+--- request
+    GET /
+--- response_body_like: ^(.*)$
+
+=== TEST 4: the GET of HTTP with variable length response again
+--- http_config
+    upstream backend{
+        server www.163.com;
+        keepalive 64;
+    }
+--- config
+    location / {
+        proxy_set_header Host www.163.com;
+        proxy_pass http://backend;
+    }
+--- request
+    GET /
+--- response_body_like: ^(.*)$
+
+=== TEST 5: the GET of HTTP without keepalive
+--- http_config
+    upstream backend{
+        server www.163.com;
+    }
+--- config
+    location / {
+        proxy_set_header Host www.163.com;
+        proxy_pass http://backend;
+    }
+--- request
+    GET /
 --- response_body_like: ^(.*)$
