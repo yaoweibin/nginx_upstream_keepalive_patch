@@ -313,7 +313,7 @@ ngx_http_upstream_free_keepalive_peer(ngx_peer_connection_t *pc, void *data,
 
     if (!kp->failed
         && pc->connection != NULL
-#if (NGX_UPSTREAM_KEEPALIVE_PATCHED)
+#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
         && u->keepalive)
 #else
         && (status == NGX_HTTP_NOT_FOUND

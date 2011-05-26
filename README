@@ -1,7 +1,27 @@
 
+==INSTALLATION==
+    
+cd nginx-1.0.2
+patch -p1 < /path/to/this/directory/upstream_keepalive_1.0.2.patch
+
+#add the module
+./configure --add-module=/path/to/this/directory
+
+
+==EXAMPLE==
+
+upstream backends {
+    server 10.0.0.1;
+    server 10.0.0.2;
+
+    keepalive 128;
+}
+
 ==COPYRIGHT & LICENSE==
 
-This code is licensed under the BSD license.
+This original patch is writen by Maxim Dounin and licensed under the BSD license.
+
+This patch is licensed under the BSD license.
 
 Copyright (C) 2011 by Weibin Yao <yaoweibin@gmail.com>.
 

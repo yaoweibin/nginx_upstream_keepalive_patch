@@ -1,0 +1,153 @@
+diff --git a/src/event/ngx_event_pipe.c b/src/event/ngx_event_pipe.c
+index d01b204..cfe0d0b 100644
+--- a/src/event/ngx_event_pipe.c
++++ b/src/event/ngx_event_pipe.c
+@@ -313,6 +313,9 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p)
+             if (n >= size) {
+                 cl->buf->last = cl->buf->end;
+ 
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++                n -= size;
++#else
+                 /* STUB */ cl->buf->num = p->num++;
+ 
+                 if (p->input_filter(p, cl->buf) == NGX_ERROR) {
+@@ -323,13 +326,31 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p)
+                 ln = cl;
+                 cl = cl->next;
+                 ngx_free_chain(p->pool, ln);
++#endif
+ 
+             } else {
+                 cl->buf->last += n;
+                 n = 0;
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++                if (cl->buf->last - cl->buf->pos < p->length) {
++                    continue;
++                }
++#endif
+             }
+         }
+ 
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++        /* STUB */ cl->buf->num = p->num++;
++
++        if (p->input_filter(p, cl->buf) == NGX_ERROR) {
++            return NGX_ABORT;
++        }
++
++        ln = cl;
++        cl = cl->next;
++        ngx_free_chain(p->pool, ln);
++#endif
++
+         if (cl) {
+             for (ln = cl; ln->next; ln = ln->next) { /* void */ }
+ 
+@@ -392,6 +413,11 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p)
+                        cl->buf->file_last - cl->buf->file_pos);
+     }
+ 
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    ngx_log_debug1(NGX_LOG_DEBUG_EVENT, p->log, 0,
++                   "pipe length: %O", p->length);
++#endif
++
+ #endif
+ 
+     if ((p->upstream_eof || p->upstream_error) && p->free_raw_bufs) {
+@@ -848,6 +874,18 @@ ngx_event_pipe_copy_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf)
+     }
+     p->last_in = &cl->next;
+ 
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    if (p->length == NGX_MAX_OFF_T_VALUE) {
++        return NGX_OK;
++    }
++
++    p->length -= b->last - b->pos;
++
++    if (p->length <= 0) {
++        p->upstream_done = 1;
++    }
++#endif
++
+     return NGX_OK;
+ }
+ 
+diff --git a/src/event/ngx_event_pipe.h b/src/event/ngx_event_pipe.h
+index 00b8acf..ed89a72 100644
+--- a/src/event/ngx_event_pipe.h
++++ b/src/event/ngx_event_pipe.h
+@@ -65,6 +65,9 @@ struct ngx_event_pipe_s {
+     ssize_t            busy_size;
+ 
+     off_t              read_length;
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    off_t              length;
++#endif
+ 
+     off_t              max_temp_file_size;
+     ssize_t            temp_file_write_size;
+diff --git a/src/http/modules/ngx_http_proxy_module.c b/src/http/modules/ngx_http_proxy_module.c
+index 214fe6a..b03ae99 100644
+--- a/src/http/modules/ngx_http_proxy_module.c
++++ b/src/http/modules/ngx_http_proxy_module.c
+@@ -483,7 +483,11 @@ static char  ngx_http_proxy_version[] = " HTTP/1.0" CRLF;
+ 
+ static ngx_keyval_t  ngx_http_proxy_headers[] = {
+     { ngx_string("Host"), ngx_string("$proxy_host") },
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    { ngx_string("Connection"), ngx_string("keep-alive") },
++#else
+     { ngx_string("Connection"), ngx_string("close") },
++#endif
+     { ngx_string("Keep-Alive"), ngx_string("") },
+     { ngx_string("Expect"), ngx_string("") },
+     { ngx_null_string, ngx_null_string }
+@@ -611,6 +615,9 @@ ngx_http_proxy_handler(ngx_http_request_t *r)
+     }
+ 
+     u->pipe->input_filter = ngx_event_pipe_copy_input_filter;
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    u->keepalive = 1;
++#endif
+ 
+     u->accel = 1;
+ 
+diff --git a/src/http/ngx_http_upstream.c b/src/http/ngx_http_upstream.c
+index 914d72c..0564996 100644
+--- a/src/http/ngx_http_upstream.c
++++ b/src/http/ngx_http_upstream.c
+@@ -2211,6 +2211,17 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u)
+     p->pool = r->pool;
+     p->log = c->log;
+ 
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    if (r->headers_out.content_length_n != -1) {
++
++        p->length = r->headers_out.content_length_n;
++
++    } else {
++        p->length = NGX_MAX_OFF_T_VALUE;
++    }
++
++#endif
++
+     p->cacheable = u->cacheable || u->store;
+ 
+     p->temp_file = ngx_pcalloc(r->pool, sizeof(ngx_temp_file_t));
+diff --git a/src/http/ngx_http_upstream.h b/src/http/ngx_http_upstream.h
+index 01e2e1e..21ecc52 100644
+--- a/src/http/ngx_http_upstream.h
++++ b/src/http/ngx_http_upstream.h
+@@ -310,6 +310,9 @@ struct ngx_http_upstream_s {
+ 
+     unsigned                         request_sent:1;
+     unsigned                         header_sent:1;
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    unsigned                         keepalive:1;
++#endif
+ };
+ 
+ 
