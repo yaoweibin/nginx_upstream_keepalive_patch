@@ -179,7 +179,7 @@ index 00b8acf..7fd921e 100644
  ngx_int_t ngx_event_pipe_add_free_buf(ngx_event_pipe_t *p, ngx_buf_t *b);
  
 diff --git a/src/http/modules/ngx_http_proxy_module.c b/src/http/modules/ngx_http_proxy_module.c
-index 214fe6a..b03ae99 100644
+index 214fe6a..cf53d79 100644
 --- a/src/http/modules/ngx_http_proxy_module.c
 +++ b/src/http/modules/ngx_http_proxy_module.c
 @@ -483,7 +483,11 @@ static char  ngx_http_proxy_version[] = " HTTP/1.0" CRLF;
@@ -194,7 +194,19 @@ index 214fe6a..b03ae99 100644
      { ngx_string("Keep-Alive"), ngx_string("") },
      { ngx_string("Expect"), ngx_string("") },
      { ngx_null_string, ngx_null_string }
-@@ -611,6 +615,9 @@ ngx_http_proxy_handler(ngx_http_request_t *r)
+@@ -507,7 +511,11 @@ static ngx_str_t  ngx_http_proxy_hide_headers[] = {
+ 
+ static ngx_keyval_t  ngx_http_proxy_cache_headers[] = {
+     { ngx_string("Host"), ngx_string("$proxy_host") },
++#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
++    { ngx_string("Connection"), ngx_string("keep-alive") },
++#else 
+     { ngx_string("Connection"), ngx_string("close") },
++#endif
+     { ngx_string("Keep-Alive"), ngx_string("") },
+     { ngx_string("Expect"), ngx_string("") },
+     { ngx_string("If-Modified-Since"), ngx_string("") },
+@@ -611,6 +619,9 @@ ngx_http_proxy_handler(ngx_http_request_t *r)
      }
  
      u->pipe->input_filter = ngx_event_pipe_copy_input_filter;
