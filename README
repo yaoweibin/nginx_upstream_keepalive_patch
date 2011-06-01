@@ -23,9 +23,9 @@ https://github.com/yaoweibin/nginx_upstream_keepalive_patch/raw/master/ngx_http_
 ==COPYRIGHT & LICENSE==
 
 This original patch and ngx_http_upstream_keepalive_module is written by 
-Maxim Dounin and licensed under the BSD license.
+Maxim Dounin and published under the BSD license.
 
-This patch is also licensed under the BSD license.
+This patch is also published under the BSD license.
 
 Copyright (C) 2011 by Weibin Yao <yaoweibin@gmail.com>.
 
