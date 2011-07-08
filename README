@@ -20,6 +20,10 @@ upstream backends {
 The ngx_http_upstream_keepalive_module's document is here:
 https://github.com/yaoweibin/nginx_upstream_keepalive_patch/raw/master/ngx_http_upstream_keepalive/README
 
+Notice that, this module keep connections in a pool. All the backend connections
+will not be timeout or closed actively by this module, unless the backend 
+server close the connection.  
+
 ==COPYRIGHT & LICENSE==
 
 This original patch and ngx_http_upstream_keepalive_module is written by 
