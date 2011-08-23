@@ -39,6 +39,7 @@ __DATA__
     location / {
         proxy_buffering off;
         proxy_set_header Host blog.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request

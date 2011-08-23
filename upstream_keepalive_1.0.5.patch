@@ -179,34 +179,10 @@ index 00b8acf..7fd921e 100644
  ngx_int_t ngx_event_pipe_add_free_buf(ngx_event_pipe_t *p, ngx_buf_t *b);
  
 diff --git a/src/http/modules/ngx_http_proxy_module.c b/src/http/modules/ngx_http_proxy_module.c
-index 214fe6a..cf53d79 100644
+index 214fe6a..00c1a0c 100644
 --- a/src/http/modules/ngx_http_proxy_module.c
 +++ b/src/http/modules/ngx_http_proxy_module.c
-@@ -483,7 +483,11 @@ static char  ngx_http_proxy_version[] = " HTTP/1.0" CRLF;
- 
- static ngx_keyval_t  ngx_http_proxy_headers[] = {
-     { ngx_string("Host"), ngx_string("$proxy_host") },
-+#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
-+    { ngx_string("Connection"), ngx_string("keep-alive") },
-+#else
-     { ngx_string("Connection"), ngx_string("close") },
-+#endif
-     { ngx_string("Keep-Alive"), ngx_string("") },
-     { ngx_string("Expect"), ngx_string("") },
-     { ngx_null_string, ngx_null_string }
-@@ -507,7 +511,11 @@ static ngx_str_t  ngx_http_proxy_hide_headers[] = {
- 
- static ngx_keyval_t  ngx_http_proxy_cache_headers[] = {
-     { ngx_string("Host"), ngx_string("$proxy_host") },
-+#if (NGX_ENABLE_UPSTREAM_KEEPALIVE)
-+    { ngx_string("Connection"), ngx_string("keep-alive") },
-+#else 
-     { ngx_string("Connection"), ngx_string("close") },
-+#endif
-     { ngx_string("Keep-Alive"), ngx_string("") },
-     { ngx_string("Expect"), ngx_string("") },
-     { ngx_string("If-Modified-Since"), ngx_string("") },
-@@ -611,6 +619,9 @@ ngx_http_proxy_handler(ngx_http_request_t *r)
+@@ -611,6 +611,9 @@ ngx_http_proxy_handler(ngx_http_request_t *r)
      }
  
      u->pipe->input_filter = ngx_event_pipe_copy_input_filter;
@@ -217,10 +193,10 @@ index 214fe6a..cf53d79 100644
      u->accel = 1;
  
 diff --git a/src/http/ngx_http_upstream.c b/src/http/ngx_http_upstream.c
-index 914d72c..7bc5f4d 100644
+index ad5b449..77f0806 100644
 --- a/src/http/ngx_http_upstream.c
 +++ b/src/http/ngx_http_upstream.c
-@@ -2211,6 +2211,17 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u)
+@@ -2208,6 +2208,17 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u)
      p->pool = r->pool;
      p->log = c->log;
  
@@ -238,7 +214,7 @@ index 914d72c..7bc5f4d 100644
      p->cacheable = u->cacheable || u->store;
  
      p->temp_file = ngx_pcalloc(r->pool, sizeof(ngx_temp_file_t));
-@@ -2601,6 +2612,17 @@ ngx_http_upstream_process_upstream(ngx_http_request_t *r,
+@@ -2598,6 +2609,17 @@ ngx_http_upstream_process_upstream(ngx_http_request_t *r,
          u->pipe->upstream_error = 1;
          ngx_connection_error(c, NGX_ETIMEDOUT, "upstream timed out");
  

@@ -47,6 +47,8 @@ __DATA__
         add_header X-Cache $upstream_cache_status;
 
         proxy_set_header Host www.163.com;
+        proxy_set_header Connection "keep-alive";
+
         proxy_pass http://backend;
     }
 --- request
@@ -72,6 +74,7 @@ __DATA__
         add_header X-Cache $upstream_cache_status;
 
         proxy_set_header Host www.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request
@@ -97,6 +100,7 @@ __DATA__
         add_header X-Cache $upstream_cache_status;
 
         proxy_set_header Host blog.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request
@@ -122,6 +126,7 @@ __DATA__
         add_header X-Cache $upstream_cache_status;
 
         proxy_set_header Host blog.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request

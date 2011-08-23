@@ -51,6 +51,7 @@ __DATA__
         alias                /tmp/proxy_store_test;
 
         proxy_set_header Host www.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request
@@ -79,6 +80,7 @@ __DATA__
         alias                /tmp/proxy_store_test;
 
         proxy_set_header Host www.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request
@@ -107,6 +109,7 @@ __DATA__
         alias                /tmp/proxy_store_test;
 
         proxy_set_header Host blog.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request
@@ -135,6 +138,7 @@ __DATA__
         alias                /tmp/proxy_store_test;
 
         proxy_set_header Host blog.163.com;
+        proxy_set_header Connection "keep-alive";
         proxy_pass http://backend;
     }
 --- request
