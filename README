@@ -6,7 +6,10 @@ patch.
 The core Nginx developer Maxim Dounin has released a completed patch for Nginx
 HTTP/1.1 proxying (http://forum.nginx.org/read.php?2,213207). It will be merged
 into the 1.1.x branch of Nginx(http://mailman.nginx.org/pipermail/nginx-devel/2011-July/001083.html).
-I suggest you should use this patch.
+
+This patch has merged into the Nginx-1.1.4 branch. 
+
+I suggest you should use this patch. Good luck.
 
 ==INSTALLATION==
     
